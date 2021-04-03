@@ -8,6 +8,7 @@ How to contribute to the Linux Kernel
    * Clone https://github.com/jaspervdj/patat
    * `stack setup && stack install`
    * `export PATH=$PATH:$HOME/.local/bin`
+   * Install figlet
 2. `patat presenation.md`
 
 enjoy..

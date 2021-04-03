@@ -168,23 +168,39 @@ Structure
 
 ---
 
+
+## Active Kernel Releases
+
+[Kernel releases](https://www.kernel.org/category/releases.html)
+
+- __Release Candidate (RC)__:
+Mainline pre-releases used for testing and feature development. An RC a two weeks cycle.
+- __Mainline__:
+After muliple RC cycles a new mainline Kernel will be declared by Linus (2-3 months cycle)
+- __Stable__:
+Only bug fixes allowed and those will be backproted from mainline
+- __Longterm (LTR)__:
+Longterm maintenance Kernels only with imporant bug fixes/backports
+
+---
+
 ## Kernel Source - where to start
 
-- `Makefile` This file is the top-level Makefile for the whole source tree
-- `MAINTAINERS` Defines maintainers for each subsystem and area
-- `Documentation/` This directory contains a lot of useful information about configuring the kernel
-- `arch/`: All the architecture specific code is in this directory
-- `crypto/` This is a cryptographic API for use by the kernel itself.
-- `drivers/` As a general rule, code to run peripheral devices is found in subdirectories of this directory.
-- `fs/` Both the generic filesystem code (VFS) and the code for each different filesystem
-- `include/`: Most of the header files included at the beginning of a .c file
-- `ipc/`: "IPC" stands for "Inter-Process Communication".
-- `kernel/`: Generic kernel level code that doesn't fit anywhere else goes in here.
-- `lib/`: Routines of generic usefulness to all kernel code are put in here.
-- `net/`: The high-level networking code is here.
-- `scripts/`: This directory contains scripts that are useful in building the kernel
-- `security/`: Code for different Linux security models can be found here
-- `usr/`: This directory contains code that builds a cpio-format
+- __Makefile__ This file is the top-level Makefile for the whole source tree
+- __MAINTAINERS__ Defines maintainers for each subsystem and area
+- __Documentation/__ This directory contains a lot of useful information about configuring the kernel
+- __arch/__: All the architecture specific code is in this directory
+- __crypto/__ This is a cryptographic API for use by the kernel itself.
+- __drivers/__ As a general rule, code to run peripheral devices is found in subdirectories of this directory.
+- __fs/__ Both the generic filesystem code (VFS) and the code for each different filesystem
+- __include/__: Most of the header files included at the beginning of a .c file
+- __ipc/__: "IPC" stands for "Inter-Process Communication".
+- __kernel/__: Generic kernel level code that doesn't fit anywhere else goes in here.
+- __lib/__: Routines of generic usefulness to all kernel code are put in here.
+- __net/__: The high-level networking code is here.
+- __scripts/__: This directory contains scripts that are useful in building the kernel
+- __security/__: Code for different Linux security models can be found here
+- __usr/__: This directory contains code that builds a cpio-format
 
 Source: https://courses.linuxchix.org/kernel-hacking-2002/08-overview-kernel-source.html
 
@@ -204,8 +220,8 @@ Let's get started
          │                       │   │                       │
          │  Linus Torvalds       │   │  Stephen Rothwell     │
          │                       │   │                       │
-         └───────────────────────▲   ├───────────────────▲───┘
-                 ▲           ▲   └───┴───────────────────┤
+         └───────────────────────▲   └───────────────────▲───┘
+                 ▲           ▲   └───────────────────────┤
                  │           │                           │
 ┌────────────────┴──────┐ ┌──┴────────────────────┐ ┌────┴──────────────────┐
 │ sub system            │ │ sub system            │ │ sub system            │
@@ -232,9 +248,46 @@ Let's get started
 
 
 ---
+# Contributing a patch
+```bash
+sudo apt-get install git-email
+```
+
+- content-type text/plain
+- No HTML mails!
+- No signatures
+- No attachments
+- Patches with git format-patch
+- Patches with `git commit -s`
+
+```gitconfig
+[sendemail]
+; setup for using git send-email; prompts for password
+smtpuser = marc@koderer.com
+smtpserver = SMTPSERVER
+smtpencryption = tls
+smtpserverport = 587
+[user]
+	email = marc@koderer.com
+	name = Marc Koderer
+```
+
+---
+
+# Commit workflow
+
+0. Create a branch `git chechout -b my_feature`
+1. Do the change
+2. Commit it `git add ..` and `git commit -s`
+3. git format-patch -1
+4. Check the patch scripts/checkpatch.pl my.patch
+5. Find the right DL
+6. Send out the contribution `git send-email`
+
+---
 
 # Links
-
+- [Git flags](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#using-reported-by-tested-by-reviewed-by-suggested-by-and-fixes)
 - [Linux Kernel Maintainacers](https://www.kernel.org/doc/html/latest/process/maintainers.html#maintainers-list)
 - [How to configure GIT](https://www.kernel.org/doc/html/latest/maintainer/configure-git.html)
 - [Source structure](https://courses.linuxchix.org/kernel-hacking-2002/08-overview-kernel-source.html)
