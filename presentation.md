@@ -30,7 +30,7 @@ Agenda
 
 * Build your dev environment
 * Kernel dev structure
-* How to contribute / communicate
+* Do some changes and contribute it
 * About testing
 * Where to start..
 
@@ -206,13 +206,117 @@ Source: https://courses.linuxchix.org/kernel-hacking-2002/08-overview-kernel-sou
 
 ---
 
-# How to contribute / communicate
+# Do some changes and contribute it
 
 ```figlet
 Let's get started
 ```
 
 ---
+# Practical example [1/4]
+
+Compile `linux/samples/kprobes` load the modules and have a look:
+
+```bash
+make -C ~/kernel/linux/ M=$PWD modules
+sudo insmod kprobe_example.ko
+sudo dmesg | tail
+  [  911.102788] <kernel_clone> post_handler: p->addr = 0x00000000cdf2e666, flags = 0x206
+  [  913.116030] <kernel_clone> pre_handler: p->addr = 0x00000000cdf2e666, ip = ffffffffad87d011, flags = 0x206
+  ..
+```
+
+Unload the kernel module
+```bash
+sudo rmmod kprobe_example.ko
+sudo dmesg | tail -1
+   [  919.433074] kprobe at 00000000cdf2e666 unregistered
+```
+
+In `kprobe_example.c` the probed entry was changed from `_do_fork` to `kernel_clone`.
+This could cause issues when executing the sample in older kernels (kernel_clone was introduced quite recently).
+
+---
+# Practical example [2/4]
+
+Let's change the code and probe a function that doesn't exist
+
+```diff
+diff --git a/samples/kprobes/kprobe_example.c b/samples/kprobes/kprobe_example.c
+index 331dcf151532..794527f11667 100644
+--- a/samples/kprobes/kprobe_example.c
++++ b/samples/kprobes/kprobe_example.c
+@@ -15,7 +15,7 @@
+ #include <linux/kprobes.h>
+
+ #define MAX_SYMBOL_LEN 64
+-static char symbol[MAX_SYMBOL_LEN] = "kernel_clone";
++static char symbol[MAX_SYMBOL_LEN] = "kernel_clone2";
+ module_param_string(symbol, symbol, sizeof(symbol), 0644);
+
+ /* For each probe you need to allocate a kprobe structure */
+```
+
+Build it and load it
+```bash
+make -C ~/kernel/linux/ M=$PWD modules
+sudo insmod kprobe_example.ko
+  insmod: ERROR: could not insert module kprobe_example.ko: Unknown symbol in module
+sudo dmesg | tail -1
+  [ 2143.150210] register_kprobe failed, returned -2
+```
+
+---
+
+# Practical example [3/4]
+
+The -2 means `ENOENT` `No such file or directory` [code](https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/errno-base.h#L6). Let's add a more obvious error message.
+
+```diff
+diff --git a/samples/kprobes/kprobe_example.c b/samples/kprobes/kprobe_example.c
+index 331dcf151532..a85304890374 100644
+-- a/samples/kprobes/kprobe_example.c
+++ b/samples/kprobes/kprobe_example.c
+@@ -108,7 +108,12 @@ static int __init kprobe_init(void)
+        kp.fault_handler = handler_fault;
+
+        ret = register_kprobe(&kp);
+-       if (ret < 0) {
++       if (ret == -ENOENT){
++               // Check in /proc/kallsyms for a vaild symbol
++               pr_err("register_kprobe failed, symbol not found: %d\n", ret);
++               return ret;
++       }
++       else if (ret < 0) {
+                pr_err("register_kprobe failed, returned %d\n", ret);
+                return ret;
+        }
+```
+
+---
+
+# Practical example [4/4]
+
+1. Let's extract a patch file
+
+```bash
+git checkout kprobe_err_msg
+git format-patch -1
+```
+
+2. Check the patch
+```bash
+scripts/checkpatch.pl 0001-samples-kprobes-Adapt-error-handling.patch
+```
+
+3. Get the maintainers for the patch
+```bash
+scripts/get_maintainer.pl --no-rolestats 0001-samples-kprobes-Adapt-error-handling.patch
+```
+
+---
+
+
 ## Kernel commit structure
 ```cat
          ┌───────────────────────┐   ┌───────────────────────┐
@@ -281,7 +385,7 @@ smtpserverport = 587
 2. Commit it `git add ..` and `git commit -s`
 3. git format-patch -1
 4. Check the patch scripts/checkpatch.pl my.patch
-5. Find the right DL
+5. Find the right DL/maintainer with `scripts/get_maintainer.pl` 
 6. Send out the contribution `git send-email`
 
 ---
