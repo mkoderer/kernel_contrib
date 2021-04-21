@@ -114,17 +114,6 @@ sudo update-grub
 
 ---
 
-## Changing something and prepre for a commit
-
-```bash
-git checkout -b first-patch
-git add <file>
-git commit -s -v
-git format-patch -o /tmp/ HEAD^
-```
-
----
-
 # Kernel dev structure
 
 ```figlet
@@ -206,6 +195,7 @@ Source: https://courses.linuxchix.org/kernel-hacking-2002/08-overview-kernel-sou
 
 ---
 
+
 # Do some changes and contribute it
 
 ```figlet
@@ -213,6 +203,19 @@ Let's get started
 ```
 
 ---
+
+# Commit workflow
+
+0. Create a branch `git chechout -b my_feature`
+1. Do the change
+2. Commit it `git add ..` and `git commit -s`
+3. git format-patch -1
+4. Check the patch scripts/checkpatch.pl my.patch
+5. Find the right DL/maintainer with `scripts/get_maintainer.pl` 
+6. Send out the contribution `git send-email`
+
+---
+
 # Practical example [1/4]
 
 Compile `linux/samples/kprobes` load the modules and have a look:
@@ -378,19 +381,8 @@ smtpserverport = 587
 
 ---
 
-# Commit workflow
-
-0. Create a branch `git chechout -b my_feature`
-1. Do the change
-2. Commit it `git add ..` and `git commit -s`
-3. git format-patch -1
-4. Check the patch scripts/checkpatch.pl my.patch
-5. Find the right DL/maintainer with `scripts/get_maintainer.pl` 
-6. Send out the contribution `git send-email`
-
----
-
 # Links
+- [Linux Foundation training](https://training.linuxfoundation.org/training/a-beginners-guide-to-linux-kernel-development-lfd103/)
 - [Git flags](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#using-reported-by-tested-by-reviewed-by-suggested-by-and-fixes)
 - [Linux Kernel Maintainacers](https://www.kernel.org/doc/html/latest/process/maintainers.html#maintainers-list)
 - [How to configure GIT](https://www.kernel.org/doc/html/latest/maintainer/configure-git.html)
