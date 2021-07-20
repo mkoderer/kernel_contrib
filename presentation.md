@@ -32,7 +32,7 @@ Agenda
 * Kernel dev structure
 * Do some changes and contribute it
 * About testing
-* Where to start..
+* Links
 
 ---
 
@@ -286,7 +286,7 @@ index 331dcf151532..a85304890374 100644
         ret = register_kprobe(&kp);
 -       if (ret < 0) {
 +       if (ret == -ENOENT){
-+               // Check in /proc/kallsyms for a vaild symbol
++               /* Check in /proc/kallsyms for a valid symbol. */
 +               pr_err("register_kprobe failed, symbol not found: %d\n", ret);
 +               return ret;
 +       }
