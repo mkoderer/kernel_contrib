@@ -1,0 +1,13 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+    Vagrant.configure("2") do |config|
+      config.vm.box = "bento/ubuntu-20.04"
+      config.disksize.size = '100GB'
+
+      config.vm.provider "virtualbox" do |v|
+        v.memory = 4096
+        v.cpus = 4
+        v.name = "kernel"
+      end
+      config.vm.provision "shell", path: "install.sh"
+    end
