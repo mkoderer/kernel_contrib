@@ -1,5 +1,5 @@
 ---
-author: 'Marc Koderer'
+author: 'dr3am'
 title: 'How to Contribute to the Linux Kernel'
 patat:
     wrap: true
@@ -28,89 +28,32 @@ patat:
 Agenda
 ```
 
-* Build your dev environment
-* Kernel dev structure
-* Do some changes and contribute it
+* Intro
+* How to intentify potential fixes?
+* Workflow of a change
 * About testing
 * Links
 
 ---
 
-# Build your dev environment
+# Intro
 
-```figlet
-Dev setup
-```
-
----
-# Build an environment
-
-Vagrant with your picked distro
-
-Dont forget to resize you volume::
-```bash
-    vagrant plugin install vagrant-disksize
-```
-
-- Don't forget to increase CPU, MEM and disk
-- Do not use shared FS for the kernel git
-
-```ruby
-Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-20.04"
-  config.disksize.size = '100GB'
-
-  config.vm.provider "virtualbox" do |v|
-    v.memory = 4096
-    v.cpus = 4
-    v.name = "kernel"
-  end
-end
-```
----
-
-## Install dependencies
-
-```bash
-   sudo apt-get update
-   sudo apt-get install -y libncurses-dev gawk flex bison bc
-   sudo apt-get install -y openssl libssl-dev dkms libelf-dev
-   sudo apt-get install -y libudev-dev libpci-dev libiberty-dev autoconf
-   sudo apt-get install -y git
-   # Optional
-   sudo apt install linux-headers-$(uname -r)
-```
+## Why should we look into the Linux Kernel?
+* Deeper understanding of what is happening on an operating system
+* Understanding of the life-cycle and security expects 
+* Patching devices drivers for desktop machines
+* Home projects like Raspberry Pi etc
+* Fun
 
 ---
+# How to intentify potential fixes?
 
-## Clone the sources
-Take a coffee
-```
-> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+## Indentify the areas you are intressted in
+## My areas are:
 
-Cloning into 'linux'...
-remote: Enumerating objects: 248, done.
-remote: Counting objects: 100% (248/248), done.
-remote: Compressing objects: 100% (148/148), done.
-remote: Total 7990947 (delta 147), reused 140 (delta 100), pack-reused 7990699
-Receiving objects: 100% (7990947/7990947), 2.12 GiB | 5.70 MiB/s, done.
-Resolving deltas: 100% (6545813/6545813), done.
-Updating files: 100% (71499/71499), done.
-```
----
-
-## Building it
-
-```bash
-# copy current config (or make your own one with make menuconfig)
-cp /boot/config-`uname -r`* .config
-make -j4
-make modules
-sudo make modules_install
-sudo make install
-sudo update-grub
-```
+* Kprobes / Kernel tracing / Systemtab
+* Containers / cgroups
+* Bluethooth LE
 
 ---
 
@@ -157,22 +100,6 @@ Structure
 
 ---
 
-
-## Active Kernel Releases
-
-[Kernel releases](https://www.kernel.org/category/releases.html)
-
-- __Release Candidate (RC)__:
-Mainline pre-releases used for testing and feature development. An RC a two weeks cycle.
-- __Mainline__:
-After muliple RC cycles a new mainline Kernel will be declared by Linus (2-3 months cycle)
-- __Stable__:
-Only bug fixes allowed and those will be backproted from mainline
-- __Longterm (LTR)__:
-Longterm maintenance Kernels only with imporant bug fixes/backports
-
----
-
 ## Kernel Source - where to start
 
 - __Makefile__ This file is the top-level Makefile for the whole source tree
@@ -195,8 +122,32 @@ Source: https://courses.linuxchix.org/kernel-hacking-2002/08-overview-kernel-sou
 
 ---
 
+## Kernel commit structure
+```cat
+         ┌───────────────────────┐   ┌───────────────────────┐
+         │ mainline Kernel       │   │ -next                 │
+         │                       │   │                       │
+         │  Linus Torvalds       │   │  Stephen Rothwell     │
+         │                       │   │                       │
+         └───────────────────────▲   └───────────────────▲───┘
+                 ▲           ▲   └───────────────────────┤
+                 │           │                           │
+┌────────────────┴──────┐ ┌──┴────────────────────┐ ┌────┴──────────────────┐
+│ sub system            │ │ sub system            │ │ sub system            │
+│                       │ │                       │ │                       │
+│ Maintainer / ML       │ │ Maintainer / ML       │ │ Maintainer / ML       │
+│                       │ │                       │ │                       │
+└──────▲────────────────┘ └───────▲───────────────┘ └───────▲───────────────┘
+       │                          │                         │
+       │                          │                         │
+ ┌─────┴────┐                ┌────┴─────┐              ┌────┴─────┐
+ │Developer │                │Developer │              │Developer │
+ └──────────┘                └──────────┘              └──────────┘
+```
 
-# Do some changes and contribute it
+---
+
+# Workflow of a change
 
 ```figlet
 Let's get started
@@ -213,6 +164,8 @@ Let's get started
 4. Check the patch scripts/checkpatch.pl my.patch
 5. Find the right DL/maintainer with `scripts/get_maintainer.pl` 
 6. Send out the contribution `git send-email`
+
+More details [Kernel development-posting](https://www.kernel.org/doc/html/latest/process/5.Posting.html#development-posting)
 
 ---
 
@@ -300,47 +253,21 @@ index 331dcf151532..a85304890374 100644
 
 # Practical example [4/4]
 
-1. Let's extract a patch file
+- Let's extract a patch file
 
 ```bash
 git checkout kprobe_err_msg
 git format-patch -1
 ```
 
-2. Check the patch
+- Check the patch
 ```bash
 scripts/checkpatch.pl 0001-samples-kprobes-Adapt-error-handling.patch
 ```
 
-3. Get the maintainers for the patch
+- Get the maintainers for the patch
 ```bash
 scripts/get_maintainer.pl --no-rolestats 0001-samples-kprobes-Adapt-error-handling.patch
-```
-
----
-
-
-## Kernel commit structure
-```cat
-         ┌───────────────────────┐   ┌───────────────────────┐
-         │ mainline Kernel       │   │ -next                 │
-         │                       │   │                       │
-         │  Linus Torvalds       │   │  Stephen Rothwell     │
-         │                       │   │                       │
-         └───────────────────────▲   └───────────────────▲───┘
-                 ▲           ▲   └───────────────────────┤
-                 │           │                           │
-┌────────────────┴──────┐ ┌──┴────────────────────┐ ┌────┴──────────────────┐
-│ sub system            │ │ sub system            │ │ sub system            │
-│                       │ │                       │ │                       │
-│ Maintainer / ML       │ │ Maintainer / ML       │ │ Maintainer / ML       │
-│                       │ │                       │ │                       │
-└──────▲────────────────┘ └───────▲───────────────┘ └───────▲───────────────┘
-       │                          │                         │
-       │                          │                         │
- ┌─────┴────┐                ┌────┴─────┐              ┌────┴─────┐
- │Developer │                │Developer │              │Developer │
- └──────────┘                └──────────┘              └──────────┘
 ```
 
 ---
@@ -370,13 +297,13 @@ sudo apt-get install git-email
 ```gitconfig
 [sendemail]
 ; setup for using git send-email; prompts for password
-smtpuser = marc@koderer.com
+smtpuser = yourmail@dr3am.com
 smtpserver = SMTPSERVER
 smtpencryption = tls
 smtpserverport = 587
 [user]
-	email = marc@koderer.com
-	name = Marc Koderer
+	email = yourmail@dr3am.com
+	name = Dr3am
 ```
 
 ---
