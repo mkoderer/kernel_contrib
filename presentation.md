@@ -120,6 +120,10 @@ Structure
 
 Source: https://courses.linuxchix.org/kernel-hacking-2002/08-overview-kernel-source.html
 
+- linux/arch/arm/include/asm/processor.h
+- linux/fs/ceph/file.c
+- linux/rust/kernel/allocator.rs
+
 ---
 
 ## Kernel commit structure
@@ -189,7 +193,7 @@ sudo dmesg | tail -1
    [  919.433074] kprobe at 00000000cdf2e666 unregistered
 ```
 
-In `kprobe_example.c` the probed entry was changed from `_do_fork` to `kernel_clone`.
+In `kprobe_example.c` the probed entry was changed from `_do_fork` to `kernel_clone` (commit cad6967).
 This could cause issues when executing the sample in older kernels (kernel_clone was introduced quite recently).
 
 ---
@@ -229,24 +233,26 @@ sudo dmesg | tail -1
 The -2 means `ENOENT` `No such file or directory` [code](https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/errno-base.h#L6). Let's add a more obvious error message.
 
 ```diff
-diff --git a/samples/kprobes/kprobe_example.c b/samples/kprobes/kprobe_example.c
-index 331dcf151532..a85304890374 100644
--- a/samples/kprobes/kprobe_example.c
-++ b/samples/kprobes/kprobe_example.c
-@@ -108,7 +108,12 @@ static int __init kprobe_init(void)
-        kp.fault_handler = handler_fault;
+ samples/kprobes/kprobe_example.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-        ret = register_kprobe(&kp);
--       if (ret < 0) {
-+       if (ret == -ENOENT){
-+               /* Check in /proc/kallsyms for a valid symbol. */
-+               pr_err("register_kprobe failed, symbol not found: %d\n", ret);
-+               return ret;
-+       }
-+       else if (ret < 0) {
-                pr_err("register_kprobe failed, returned %d\n", ret);
-                return ret;
-        }
+diff --git a/samples/kprobes/kprobe_example.c b/samples/kprobes/kprobe_example.c
+index fd346f58ddba..a98b61ca4741 100644
+--- a/samples/kprobes/kprobe_example.c
++++ b/samples/kprobes/kprobe_example.c
+@@ -101,7 +101,11 @@ static int __init kprobe_init(void)
+ 	kp.post_handler = handler_post;
+
+ 	ret = register_kprobe(&kp);
+-	if (ret < 0) {
++	if (ret == -ENOENT) {
++		/* Check in /proc/kallsyms for a valid symbol. */
++		pr_err("register_kprobe failed, symbol not found: %d\n", ret);
++		return ret;
++	} else if (ret < 0) {
+ 		pr_err("register_kprobe failed, returned %d\n", ret);
+ 		return ret;
+ 	}
 ```
 
 ---
